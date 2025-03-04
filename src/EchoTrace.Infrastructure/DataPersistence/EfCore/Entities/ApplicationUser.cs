@@ -5,11 +5,20 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EchoTrace.Infrastructure.DataPersistence.EfCore.Entities;
 
-public class ApplicationUser : IEfEntity<ApplicationUser>, IHasKey<Guid>
+public class ApplicationUser : IEfEntity<ApplicationUser>, IHasKey<Guid>, IHasCreatedOn
 {
-    public ApplicationUser()
+    private ApplicationUser()
     {
         this.InitPropertyValues();
+    }
+
+    public ApplicationUser(string userName, string passwordHash)
+    {
+        this.InitPropertyValues();
+        ArgumentException.ThrowIfNullOrWhiteSpace(userName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
+        this.UserName = userName;
+        this.PasswordHash = passwordHash;
     }
 
     public static void ConfigureEntityMapping(EntityTypeBuilder<ApplicationUser> builder,
@@ -19,4 +28,10 @@ public class ApplicationUser : IEfEntity<ApplicationUser>, IHasKey<Guid>
     }
 
     public Guid Id { get; set; }
+    
+    public string UserName { get; set; }
+    
+    public string PasswordHash { get; set; }
+    
+    public DateTime CreatedOn { get; set; }
 }

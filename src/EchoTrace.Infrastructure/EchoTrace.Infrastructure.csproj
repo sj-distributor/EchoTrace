@@ -8,6 +8,7 @@
 		<GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
 		<GenerateDefaultWin32Manifest>false</GenerateDefaultWin32Manifest>
 		<LangVersion>latest</LangVersion>
+		<UserSecretsId>6cdacfb0-a5ce-49ad-9e7b-5faa57019ede</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>

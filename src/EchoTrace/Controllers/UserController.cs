@@ -1,5 +1,7 @@
 ﻿using EchoTrace.Controllers.Bases;
 using EchoTrace.Primary.Contracts;
+using EchoTrace.Primary.Contracts.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EchoTrace.Controllers;
@@ -20,19 +22,18 @@ public class UserController : WebBaseController
         var response = await Mediator.SendAsync<LoginCommand, LoginResponse>(command, cancellationToken);
         return Ok(response);
     }
-
+    
     /// <summary>
-    /// 通过用户名获取用户信息
+    /// 注册
     /// </summary>
-    /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="command">Command</param>
     /// <returns></returns>
-    [HttpGet]
-    [ProducesResponseType(typeof(GetUserInfoResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserInfo([FromQuery] GetUserInfoRequest request,
-        CancellationToken cancellationToken)
+    [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterAsync(RegisterUserCommand command) 
     {
-        var response = await Mediator.RequestAsync<GetUserInfoRequest, GetUserInfoResponse>(request, cancellationToken);
-        return Ok(response);
+        await Mediator.SendAsync(command);
+        return Ok();
     }
 }
