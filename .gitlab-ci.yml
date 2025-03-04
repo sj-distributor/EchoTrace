@@ -1,0 +1,17 @@
+stages:
+- test
+sast:
+  stage: test  
+  
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    
+include:
+- template: Security/SAST.gitlab-ci.yml
+- template: Dependency-Scanning.gitlab-ci.yml
+- template: Security/Secret-Detection.gitlab-ci.yml
+  
+security-code-scan-sast:
+  variables:
+    SAST_ANALYZER_IMAGE_TAG: 3

@@ -1,0 +1,1 @@
+﻿dotnet ef migrations remove --project ../EchoTrace.Infrastructure

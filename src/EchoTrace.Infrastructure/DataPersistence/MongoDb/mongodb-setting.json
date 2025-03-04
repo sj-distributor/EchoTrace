@@ -1,0 +1,17 @@
+﻿{
+  "MongoDbSetting": {
+    "Servers": [
+      {
+        "Host": "localhost",
+        "Port": 27017
+      }
+    ],
+    "DatabaseNames": {
+      "Authorized": "Authorized",
+      "WebApi": "WebApi",
+      "IntegrationTest": "IntegrationTest"
+    },
+    "Username": null,
+    "Password": null
+  }
+}

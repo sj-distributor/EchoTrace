@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <NoWarn>CS8032;CS8618;NU1803;xUnit1013;CS8981;CS1591;CS8714;RS1004;RS2008;NU1803</NoWarn>
+    </PropertyGroup>
+</Project>

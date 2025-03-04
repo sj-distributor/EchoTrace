@@ -1,0 +1,8 @@
+{
+  "DbSetting": {
+    "ConnectionStrings": {
+      "WebApi": "Server=mysql-server;Database=identityserver;Uid=root;Pwd=123456;",
+      "IntegrationTest": "Server=localhost;Database=Database_Test;User Id=sa;Password=Password;Encrypt=True;TrustServerCertificate=true;"
+    }
+  }
+}
