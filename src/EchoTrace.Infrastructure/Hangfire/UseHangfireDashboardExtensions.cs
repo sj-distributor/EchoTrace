@@ -1,7 +1,9 @@
-﻿using Autofac;
+﻿using System.Net;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using EchoTrace.Infrastructure.DataPersistence.EfCore;
 using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects;
+using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects.Enums;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Builder;
@@ -54,9 +56,21 @@ public static class UseHangfireDashboardExtensions
                 var currentProjectJobQueryParameterList =
                     allMonitoringProjectApiQueryParameter.Where(q => q.MonitoringProjectApiId == y.Id).ToList();
                 var jobId = x.Name + "_" + y.ApiName;
+
+                var recurringJobInfo = new RecurringJobInfo
+                {
+                    ApiId = y.Id,
+                    Url = x.BaseUrl + y.ApiUrl,
+                    MonitoringProjectName = x.Name,
+                    BodyJson = y.BodyJson,
+                    HttpRequestMethod = y.HttpRequestMethod,
+                    JobId = jobId,
+                    ExpectationStatusCode = y.ExpectationCode,
+                    MonitoringProjectApiRequestHeaderInfos = currentProjectJobRequestHeaderInfoList,
+                    MonitoringProjectApiQueryParameterList = currentProjectJobQueryParameterList
+                };
                 RecurringJob.AddOrUpdate<IHangfireRegisterJobHelper>(jobId,
-                    service => service.RunRecurringJob(y.Id, x.BaseUrl + y.ApiUrl,
-                        x.Name, y.HttpRequestMethod, null, jobId, y.ExpectationCode,currentProjectJobRequestHeaderInfoList, currentProjectJobQueryParameterList, y.BodyJson), () => y.CronExpression);
+                    service => service.RunRecurringJob(recurringJobInfo, null), () => y.CronExpression);
             });
         });
 

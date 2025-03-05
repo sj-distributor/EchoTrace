@@ -13,12 +13,7 @@ namespace EchoTrace.Infrastructure.Hangfire;
 
 public interface IHangfireRegisterJobHelper
 {
-    Task RunRecurringJob(
-        Guid apiId, string url, string monitoringProjectName, HttpRequestMethod httpRequestMethod,
-        PerformContext context, string jobId, HttpStatusCode statusCode,
-        List<MonitoringProjectApiRequestHeaderInfo>? monitoringProjectApiRequestHeaderInfos = null,
-        List<MonitoringProjectApiQueryParameter>? monitoringProjectApiQueryParameterList = null,
-        string? bodyJson = null);
+    Task RunRecurringJob(RecurringJobInfo recurringJobInfo, PerformContext context);
 }
 
 public class HangfireRegisterJobHelper(
@@ -32,15 +27,11 @@ public class HangfireRegisterJobHelper(
     private const string ApiError = nameof(ApiError);
 
     public async Task RunRecurringJob(
-        Guid apiId, string url, string monitoringProjectName, HttpRequestMethod httpRequestMethod,
-        PerformContext context, string jobId, HttpStatusCode statusCode,
-        List<MonitoringProjectApiRequestHeaderInfo>? monitoringProjectApiRequestHeaderInfos = null,
-        List<MonitoringProjectApiQueryParameter>? monitoringProjectApiQueryParameterList = null,
-        string? bodyJson = null)
+        RecurringJobInfo recurringJobInfo, PerformContext context)
     {
-        var cacheKey = JobCache + "_" + apiId;
+        var cacheKey = JobCache + "_" + recurringJobInfo.ApiId;
         Log.Information("开始执行定时任务，项目作业ID：{ProjectJobId}， 请求Url：{Url}， 请求方式：{HttpRequestMethod}"
-            , apiId, url, httpRequestMethod.ToString());
+            , recurringJobInfo.ApiId, recurringJobInfo.Url, recurringJobInfo.HttpRequestMethod.ToString());
 
         var jobCacheInfo = memoryCache.Get<JobCacheInfo>(cacheKey);
         if (jobCacheInfo != null)
@@ -52,17 +43,16 @@ public class HangfireRegisterJobHelper(
         {
             jobCacheInfo = new JobCacheInfo
             {
-                ProjectJobId = apiId,
-                Url = url
+                ProjectJobId = recurringJobInfo.ApiId,
+                Url = recurringJobInfo.Url
             };
             memoryCache.Set(cacheKey, jobCacheInfo, TimeSpan.FromMinutes(hangfireSettings.JobMemoryCacheTimeout));
 
             int failCount = 0;
             for (int i = 0; i < 10; i++)
             {
-                var result = await SendHttpRequestWithApiKeyAsync(url, httpRequestMethod,
-                    monitoringProjectApiRequestHeaderInfos, monitoringProjectApiQueryParameterList, bodyJson);
-                if (result.StatusCode != statusCode)
+                var result = await SendHttpRequestWithApiKeyAsync(recurringJobInfo);
+                if (result.StatusCode != recurringJobInfo.ExpectationStatusCode)
                 {
                     failCount++;
                 }
@@ -83,7 +73,7 @@ public class HangfireRegisterJobHelper(
 
             var apiLog = new MonitoringProjectApiLog
             {
-                MonitoringProjectApiId = apiId,
+                MonitoringProjectApiId = recurringJobInfo.ApiId,
                 HealthLevel = healthLevel
             };
             
@@ -92,8 +82,8 @@ public class HangfireRegisterJobHelper(
         catch (Exception e)
         {
             Log.Error(e, "执行定时任务失败，Job作业ID：{JobId}， 请求Url：{Url}， 请求方式：{HttpRequestMethod}",
-                jobId, url, httpRequestMethod.ToString());
-            context.AddTags(monitoringProjectName + ApiError);
+                recurringJobInfo.JobId, recurringJobInfo.Url, recurringJobInfo.HttpRequestMethod.ToString());
+            context.AddTags(recurringJobInfo.MonitoringProjectName + ApiError);
             throw;
         }
         finally
@@ -102,53 +92,49 @@ public class HangfireRegisterJobHelper(
         }
     }
 
-    private async Task<HttpResponseMessage> SendHttpRequestWithApiKeyAsync(string url,
-        HttpRequestMethod httpRequestMethod,
-        List<MonitoringProjectApiRequestHeaderInfo>? monitoringProjectApiRequestHeaderInfos = null,
-        List<MonitoringProjectApiQueryParameter>? monitoringProjectApiQueryParameterList = null,
-        string? bodyJson = null)
+    private async Task<HttpResponseMessage> SendHttpRequestWithApiKeyAsync(RecurringJobInfo recurringJobInfo)
     {
         using var client = httpClientFactory.CreateClient();
         client.Timeout = TimeSpan.FromMinutes(5);
-        if (monitoringProjectApiRequestHeaderInfos != null)
+        if (recurringJobInfo.MonitoringProjectApiRequestHeaderInfos != null)
         {
-            monitoringProjectApiRequestHeaderInfos.ForEach(x =>
+            recurringJobInfo.MonitoringProjectApiRequestHeaderInfos.ForEach(x =>
             {
                 client.DefaultRequestHeaders.Add(x.RequestHeaderKey, x.RequestHeaderValue);
             });
         }
 
         object? contentObject = null;
-        if (bodyJson != null)
+        if (recurringJobInfo.BodyJson != null)
         {
-            var bodyData = JsonSerializer.Deserialize<Dictionary<string, object>>(bodyJson);
+            var bodyData = JsonSerializer.Deserialize<Dictionary<string, object>>(recurringJobInfo.BodyJson);
             contentObject = new Dictionary<string, object>(bodyData!);
         }
 
         var content = new StringContent(JsonSerializer.Serialize(contentObject), Encoding.UTF8, "application/json");
-        if (monitoringProjectApiQueryParameterList != null && monitoringProjectApiQueryParameterList.Count > 0)
+        if (recurringJobInfo.MonitoringProjectApiQueryParameterList != null && recurringJobInfo.MonitoringProjectApiQueryParameterList.Count > 0)
         {
             var queryString = string.Join("&",
-                monitoringProjectApiQueryParameterList.Select(kvp =>
+                recurringJobInfo.MonitoringProjectApiQueryParameterList.Select(kvp =>
                     $"{Uri.EscapeDataString(kvp.ParameterName.ToLower())}={Uri.EscapeDataString(kvp.ParameterValue)}"));
-            url += $"?{queryString}";
+            recurringJobInfo.Url += $"?{queryString}";
         }
 
         HttpResponseMessage result;
-        switch (httpRequestMethod)
+        switch (recurringJobInfo.HttpRequestMethod)
         {
             case HttpRequestMethod.Post:
-                result = await client.PostAsync(url, content);
+                result = await client.PostAsync(recurringJobInfo.Url, content);
                 break;
             case HttpRequestMethod.Patch:
-                result = await client.PatchAsync(url, content);
+                result = await client.PatchAsync(recurringJobInfo.Url, content);
                 break;
             case HttpRequestMethod.Put:
-                result = await client.PutAsync(url, content);
+                result = await client.PutAsync(recurringJobInfo.Url, content);
                 break;
             case HttpRequestMethod.Delete:
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url)
+                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, recurringJobInfo.Url)
                 {
                     Content = content
                 };
@@ -171,4 +157,25 @@ public class HangfireRegisterJobHelper(
 
         public string ApiKey { get; set; }
     }
+}
+
+public class RecurringJobInfo
+{
+    public Guid ApiId { get; set; }
+    
+    public string Url { get; set; }
+
+    public string MonitoringProjectName { get; set; }
+
+    public string? BodyJson { get; set; } = null;
+
+    public HttpRequestMethod HttpRequestMethod { get; set; }
+
+    public string JobId { get; set; }
+
+    public HttpStatusCode ExpectationStatusCode { get; set; }
+    
+    public List<MonitoringProjectApiRequestHeaderInfo> MonitoringProjectApiRequestHeaderInfos { get; set; }
+    
+    public List<MonitoringProjectApiQueryParameter> MonitoringProjectApiQueryParameterList { get; set; }
 }
