@@ -155,4 +155,12 @@ public class MonitoringProjectController : WebBaseController
         await Mediator.SendAsync(command);
         return Ok();
     }
+    
+    [HttpDelete("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/queryParameters/{queryParameterId}")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> DeleteMonitoringProjectApiQueryParameterAsync(DeleteMonitoringProjectApiQueryParameterCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
+    }
 }
