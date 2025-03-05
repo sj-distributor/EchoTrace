@@ -8,6 +8,11 @@ namespace EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringPro
 
 public class MonitoringProjectApiRequestHeaderInfo : IEfEntity<MonitoringProjectApiRequestHeaderInfo>, IHasKey<Guid>, IHasCreatedOn
 {
+    public MonitoringProjectApiRequestHeaderInfo()
+    {
+        this.InitPropertyValues();
+    }
+    
     public Guid Id { get; set; }
     
     public Guid MonitoringProjectApiId { get; set; }

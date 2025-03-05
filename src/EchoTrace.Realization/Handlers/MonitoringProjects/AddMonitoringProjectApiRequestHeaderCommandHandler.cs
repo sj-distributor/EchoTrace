@@ -15,14 +15,13 @@ using Shouldly;
 
 namespace EchoTrace.Realization.Handlers.MonitoringProjects;
 
-public class ModifyMonitoringProjectApiRequestHeaderCommandHandler(
-    DbAccessor<MonitoringProjectApiRequestHeaderInfo> monitoringProjectApiRequestHeaderInfoDbSet,
-    DbAccessor<MonitoringProjectApi> monitoringProjectApiDbSet,
-    DbAccessor<MonitoringProject> monitoringProjectDbSet,
+public class AddMonitoringProjectApiRequestHeaderCommandHandler(
+    DbAccessor<MonitoringProject> monitoringProjectDbSet,DbAccessor<MonitoringProjectApi> monitoringProjectApiDbSet,
     DbAccessor<MonitoringProjectApiQueryParameter> monitoringProjectApiQueryParameterDbSet,
-    IRecurringJobService recurringJobService) : IModifyMonitoringProjectApiRequestHeaderCommandContract
+    DbAccessor<MonitoringProjectApiRequestHeaderInfo> monitoringProjectApiRequestHeaderInfoDbSet,
+    IRecurringJobService recurringJobService) : IAddMonitoringProjectApiRequestHeaderCommandContract
 {
-    public async Task Handle(IReceiveContext<ModifyMonitoringProjectApiRequestHeaderCommand> context, CancellationToken cancellationToken)
+    public async Task Handle(IReceiveContext<AddMonitoringProjectApiRequestHeaderCommand> context, CancellationToken cancellationToken)
     {
         var monitoringProject = await monitoringProjectDbSet.DbSet.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == context.Message.MonitoringProjectId, cancellationToken);
@@ -39,17 +38,18 @@ public class ModifyMonitoringProjectApiRequestHeaderCommandHandler(
             throw new BusinessException("The project api does not exist.", BusinessExceptionTypeEnum.DataNotExists);
         }
         
-        var monitoringProjectApiRequestHeaderInfos = await monitoringProjectApiRequestHeaderInfoDbSet.DbSet.Where(x => x.MonitoringProjectApiId == monitoringProjectApi.Id)
+        var monitoringProjectApiRequestHeaderInfos = await monitoringProjectApiRequestHeaderInfoDbSet.DbSet.AsNoTracking().Where(x => x.MonitoringProjectApiId == monitoringProjectApi.Id)
             .ToListAsync(cancellationToken);
         var monitoringProjectApiQueryParameters = await monitoringProjectApiQueryParameterDbSet.DbSet
             .AsNoTracking().Where(x => x.MonitoringProjectApiId == monitoringProjectApi.Id)
             .ToListAsync(cancellationToken);
-        
-        var monitoringProjectApiRequestHeaderInfo =
-            monitoringProjectApiRequestHeaderInfos.First(x => x.Id == context.Message.RequestHeaderInfoId);
-        context.Message.ModifyMonitoringProjectApiRequestHeader.MapToSource(monitoringProjectApiRequestHeaderInfo);
-        monitoringProjectApiRequestHeaderInfoDbSet.DbSet.Update(monitoringProjectApiRequestHeaderInfo);
 
+        var newRequestHeader =
+            context.Message.MonitoringProjectApiRequestHeader.MapToSource(new MonitoringProjectApiRequestHeaderInfo());
+        newRequestHeader.MonitoringProjectApiId = monitoringProjectApi.Id;
+        await monitoringProjectApiRequestHeaderInfoDbSet.DbSet.AddAsync(newRequestHeader, cancellationToken);
+        monitoringProjectApiRequestHeaderInfos.Add(newRequestHeader);
+        
         var apiId = monitoringProjectApi.Id;
         var jobId = monitoringProject.Name + "_" + monitoringProjectApi.ApiName;
         var intactUrl = monitoringProject.BaseUrl + monitoringProjectApi.ApiUrl;
@@ -74,16 +74,16 @@ public class ModifyMonitoringProjectApiRequestHeaderCommandHandler(
         }
     }
     
-    public void Validate(ContractValidator<ModifyMonitoringProjectApiRequestHeaderCommand> validator)
+    public void Validate(ContractValidator<AddMonitoringProjectApiRequestHeaderCommand> validator)
     {
         validator.RuleFor(x => x.MonitoringProjectId).NotEmpty();
         validator.RuleFor(x => x.MonitoringProjectApiId).NotEmpty();
-        validator.RuleFor(x => x.RequestHeaderInfoId).NotEmpty();
-        validator.RuleFor(x => x.ModifyMonitoringProjectApiRequestHeader.RequestHeaderValue).NotEmpty();
-        validator.RuleFor(x => x.ModifyMonitoringProjectApiRequestHeader.RequestHeaderKey).NotEmpty();
+        validator.RuleFor(x => x.MonitoringProjectApiRequestHeader).NotNull();
+        validator.RuleFor(x => x.MonitoringProjectApiRequestHeader.RequestHeaderKey).NotEmpty();
+        validator.RuleFor(x => x.MonitoringProjectApiRequestHeader.RequestHeaderValue).NotEmpty();
     }
 
-    public void Test(TestContext<ModifyMonitoringProjectApiRequestHeaderCommand> context)
+    public void Test(TestContext<AddMonitoringProjectApiRequestHeaderCommand> context)
     {
         var project = new MonitoringProject().Faker();
         var projectApi = new MonitoringProjectApi().Faker(x =>
@@ -93,13 +93,13 @@ public class ModifyMonitoringProjectApiRequestHeaderCommandHandler(
         });
         var requestHeader =
             new MonitoringProjectApiRequestHeaderInfo().Faker(x => x.MonitoringProjectApiId = projectApi.Id);
+
         var testCase = context.CreateTestCase();
-        testCase.Message = new ModifyMonitoringProjectApiRequestHeaderCommand
+        testCase.Message = new AddMonitoringProjectApiRequestHeaderCommand
         {
             MonitoringProjectId = project.Id,
             MonitoringProjectApiId = projectApi.Id,
-            RequestHeaderInfoId = requestHeader.Id,
-            ModifyMonitoringProjectApiRequestHeader = new ModifyMonitoringProjectApiRequestHeaderDto
+            MonitoringProjectApiRequestHeader = new AddMonitoringProjectApiRequestHeaderDto
             {
                 RequestHeaderKey = "Key",
                 RequestHeaderValue = "Value"
@@ -120,12 +120,15 @@ public class ModifyMonitoringProjectApiRequestHeaderCommandHandler(
         testCase.Assert = async result =>
         {
             result.Exception.ShouldBeNull();
-            
-            var monitoringProjectApiRequestHeaderInfo = await context.DbContext.Set<MonitoringProjectApiRequestHeaderInfo>()
-                .FirstOrDefaultAsync(x => x.Id == testCase.Message.RequestHeaderInfoId);
+
+            var monitoringProjectApiRequestHeaderInfo = await context.DbContext
+                .Set<MonitoringProjectApiRequestHeaderInfo>()
+                .ToListAsync();
             monitoringProjectApiRequestHeaderInfo.ShouldNotBeNull();
-            monitoringProjectApiRequestHeaderInfo.RequestHeaderKey.ShouldBe(testCase.Message.ModifyMonitoringProjectApiRequestHeader.RequestHeaderKey);
-            monitoringProjectApiRequestHeaderInfo.RequestHeaderValue.ShouldBe(testCase.Message.ModifyMonitoringProjectApiRequestHeader.RequestHeaderValue);
+            monitoringProjectApiRequestHeaderInfo.Count.ShouldBe(2);
+            monitoringProjectApiRequestHeaderInfo.First(x=>x.Id != requestHeader.Id).RequestHeaderKey.ShouldBe("Key");
+            monitoringProjectApiRequestHeaderInfo.First(x=>x.Id != requestHeader.Id).RequestHeaderValue.ShouldBe("Value");
+            monitoringProjectApiRequestHeaderInfo.First(x=>x.Id != requestHeader.Id).MonitoringProjectApiId.ShouldBe(projectApi.Id);
         };
     }
 }

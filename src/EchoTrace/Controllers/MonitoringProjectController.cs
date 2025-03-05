@@ -100,4 +100,17 @@ public class MonitoringProjectController : WebBaseController
         await Mediator.SendAsync(command);
         return Ok();
     }
+    
+    /// <summary>
+    ///  Add project api request header
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads/")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> AddMonitoringProjectApiRequestHeaderAsync(AddMonitoringProjectApiRequestHeaderCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
+    }
 }

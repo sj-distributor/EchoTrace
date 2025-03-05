@@ -8,6 +8,11 @@ namespace EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringPro
 
 public class MonitoringProjectApiQueryParameter : IEfEntity<MonitoringProjectApiQueryParameter>, IHasKey<Guid>, IHasCreatedOn
 {
+    public MonitoringProjectApiQueryParameter()
+    {
+        this.InitPropertyValues();
+    }
+    
     public Guid Id { get; set; }
 
     public Guid MonitoringProjectApiId { get; set; }
