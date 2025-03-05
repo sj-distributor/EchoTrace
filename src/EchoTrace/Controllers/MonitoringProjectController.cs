@@ -77,7 +77,7 @@ public class MonitoringProjectController : WebBaseController
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads")]
+    [HttpGet("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/requestHeads")]
     [ProducesResponseType<BaseResponse<GetMonitoringProjectApiRequestHeaderListResponse>>(200)]
     public async Task<IActionResult> GetMonitoringProjectApiRequestHeaderListAsync(GetMonitoringProjectApiRequestHeaderListRequest request)
     {
@@ -93,7 +93,7 @@ public class MonitoringProjectController : WebBaseController
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
-    [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads/{requestHeaderInfoId:guid}")]
+    [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/requestHeads/{requestHeaderInfoId:guid}")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> ModifyMonitoringProjectApiRequestHeaderAsync(ModifyMonitoringProjectApiRequestHeaderCommand command)
     {
@@ -106,9 +106,38 @@ public class MonitoringProjectController : WebBaseController
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
-    [HttpPost("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads/")]
+    [HttpPost("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/requestHeads/")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> AddMonitoringProjectApiRequestHeaderAsync(AddMonitoringProjectApiRequestHeaderCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
+    }
+    
+    /// <summary>
+    ///  Get project api query parameter list
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpGet("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/queryParameters")]
+    [ProducesResponseType<BaseResponse<GetMonitoringProjectApiQueryParameterListResponse>>(200)]
+    public async Task<IActionResult> GetMonitoringProjectApiQueryParameterListAsync(GetMonitoringProjectApiQueryParameterListRequest request)
+    {
+        var response =
+            await Mediator
+                .RequestAsync<GetMonitoringProjectApiQueryParameterListRequest,
+                    BaseResponse<GetMonitoringProjectApiQueryParameterListResponse>>(request);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    ///  Modify project api query parameter
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/queryParameters/{queryParameterId}")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> ModifyMonitoringProjectApiQueryParameterAsync(ModifyMonitoringProjectApiQueryParameterCommand command)
     {
         await Mediator.SendAsync(command);
         return Ok();

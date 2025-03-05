@@ -56,6 +56,8 @@ public class HangfireRegisterJobHelper(
                 {
                     failCount++;
                 }
+
+                await Task.Delay(100);
             }
 
             var healthLevel = HealthLevel.Health;
