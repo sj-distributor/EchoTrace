@@ -26,9 +26,9 @@ public class MonitoringProjectController : WebBaseController
     /// <returns></returns>
     [HttpGet]
     [ProducesResponseType<BaseResponse<GetMonitoringProjectListResponse>>(200)]
-    public async Task<IActionResult> GetMonitoringProjectListAsync()
+    public async Task<IActionResult> GetMonitoringProjectListAsync(GetMonitoringProjectListRequest request)
     {
-        var response = await Mediator.RequestAsync<GetMonitoringProjectListRequest, BaseResponse<GetMonitoringProjectListResponse>>(new GetMonitoringProjectListRequest());
+        var response = await Mediator.RequestAsync<GetMonitoringProjectListRequest, BaseResponse<GetMonitoringProjectListResponse>>(request);
         return Ok(response);
     }
     
@@ -57,5 +57,13 @@ public class MonitoringProjectController : WebBaseController
         var response = await Mediator
             .RequestAsync<GetMonitoringProjectApiListByMonitoringProjectIdRequest, BaseResponse<GetMonitoringProjectApiListByMonitoringProjectIdResponse>>(request);
         return Ok(response);
+    }
+    
+    [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> ModifyMonitoringProjectApiAsync(ModifyMonitoringProjectApiCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
     }
 }

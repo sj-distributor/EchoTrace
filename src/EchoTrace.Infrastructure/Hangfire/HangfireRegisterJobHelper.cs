@@ -20,7 +20,7 @@ public class HangfireRegisterJobHelper(
     IMemoryCache memoryCache,
     HangfireSettings hangfireSettings,
     IHttpClientFactory httpClientFactory,
-    DbAccessor<MonitoringProjectApiLog> monitoringProjectApiLogDbSet) : IHangfireRegisterJobHelper
+    ApplicationDbContext dbContext) : IHangfireRegisterJobHelper
 {
     private const string JobCache = nameof(JobCache);
 
@@ -77,7 +77,8 @@ public class HangfireRegisterJobHelper(
                 HealthLevel = healthLevel
             };
             
-            await monitoringProjectApiLogDbSet.DbSet.AddAsync(apiLog);
+            await dbContext.Set<MonitoringProjectApiLog>().AddAsync(apiLog);
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception e)
         {
