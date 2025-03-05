@@ -1,4 +1,5 @@
 ﻿using AutoBogus;
+using MongoDB.Bson;
 
 namespace EchoTrace.Realization.Bases;
 
@@ -10,6 +11,12 @@ public sealed class BusinessFaker<T> : AutoFaker<T> where T : class
         RuleForType(typeof(float), f => f.Random.Float(0, 100));
         RuleForType(typeof(double), f => f.Random.Double(0, 100));
         RuleForType(typeof(decimal), f => f.Random.Decimal(0, 100));
+        var objectIdProperties = typeof(T).GetProperties()
+            .Where(prop => prop.PropertyType == typeof(ObjectId));
+        foreach (var prop in objectIdProperties)
+        {
+            Ignore(prop.Name);
+        }
         Configure(option => { option.WithLocale("zh_CN"); });
     }
 

@@ -1,3 +1,4 @@
+using EchoTrace.Infrastructure.DataPersistence.EfCore;
 using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities;
 using EchoTrace.Infrastructure.JwtFunction;
 using EchoTrace.Primary.Contracts.Bases;
@@ -11,11 +12,11 @@ using Shouldly;
 namespace EchoTrace.Realization.Handlers.Users;
 
 public class RegisterUserHandler(
-    DbSet<ApplicationUser> applicationUserDbSet, IPasswordHasher passwordHasher) : IRegisterUserContract
+    DbAccessor<ApplicationUser> applicationUserDbSet, IPasswordHasher passwordHasher) : IRegisterUserContract
 {
     public async Task Handle(IReceiveContext<RegisterUserCommand> context, CancellationToken cancellationToken)
     {
-        var user = await applicationUserDbSet.SingleOrDefaultAsync(x => x.UserName == context.Message.UserName,
+        var user = await applicationUserDbSet.DbSet.SingleOrDefaultAsync(x => x.UserName == context.Message.UserName,
             cancellationToken);
         if (user != null)
         {
@@ -24,7 +25,7 @@ public class RegisterUserHandler(
 
         var newUser = new ApplicationUser(context.Message.UserName,
             passwordHasher.HashPasswordV3(context.Message.Password));
-        await applicationUserDbSet.AddAsync(newUser, cancellationToken);
+        await applicationUserDbSet.DbSet.AddAsync(newUser, cancellationToken);
     }
     
     public void Validate(ContractValidator<RegisterUserCommand> validator)

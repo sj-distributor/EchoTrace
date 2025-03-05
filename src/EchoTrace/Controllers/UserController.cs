@@ -15,6 +15,7 @@ public class UserController : WebBaseController
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserInfo(LoginCommand command,
         CancellationToken cancellationToken)

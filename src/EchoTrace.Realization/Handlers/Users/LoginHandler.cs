@@ -1,4 +1,5 @@
-﻿using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities;
+﻿using EchoTrace.Infrastructure.DataPersistence.EfCore;
+using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities;
 using EchoTrace.Infrastructure.JwtFunction;
 using EchoTrace.Primary.Contracts;
 using EchoTrace.Primary.Contracts.Bases;
@@ -11,12 +12,12 @@ using Shouldly;
 namespace EchoTrace.Realization.Handlers.Users;
 
 public class LoginHandler(
-    DbSet<ApplicationUser> userDbSet, IPasswordHasher passwordHasher,
+    DbAccessor<ApplicationUser> userDbSet, IPasswordHasher passwordHasher,
     JwtService jwtService) : ILoginContract
 {
     public async Task<LoginResponse> Handle(IReceiveContext<LoginCommand> context, CancellationToken cancellationToken)
     {
-        var user = await userDbSet.SingleOrDefaultAsync(x => x.UserName == context.Message.Username, cancellationToken);
+        var user = await userDbSet.DbSet.SingleOrDefaultAsync(x => x.UserName == context.Message.Username, cancellationToken);
         if (user == null)
         {
             throw new BusinessException("用户名或密码错误", BusinessExceptionTypeEnum.UnauthorizedIdentity);
