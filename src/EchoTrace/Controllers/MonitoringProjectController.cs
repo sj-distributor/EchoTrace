@@ -37,11 +37,25 @@ public class MonitoringProjectController : WebBaseController
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
-    [HttpPost("{monitoringProjectId:guid}/monitoring-project-api")]
+    [HttpPost("{monitoringProjectId:guid}/monitoringProjectApis")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> AddMonitoringProjectApiAsync(AddMonitoringProjectApiCommand command)
     {
         await Mediator.SendAsync(command);
         return Ok();
+    }
+    
+    /// <summary>
+    ///  Get project api list
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpGet("{monitoringProjectId:guid}/monitoringProjectApis")]
+    [ProducesResponseType<BaseResponse<GetMonitoringProjectApiListByMonitoringProjectIdResponse>>(200)]
+    public async Task<IActionResult> GetMonitoringProjectApiListByMonitoringProjectIdAsync(GetMonitoringProjectApiListByMonitoringProjectIdRequest request)
+    {
+        var response = await Mediator
+            .RequestAsync<GetMonitoringProjectApiListByMonitoringProjectIdRequest, BaseResponse<GetMonitoringProjectApiListByMonitoringProjectIdResponse>>(request);
+        return Ok(response);
     }
 }
