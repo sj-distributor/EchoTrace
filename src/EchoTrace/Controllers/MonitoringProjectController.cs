@@ -87,4 +87,17 @@ public class MonitoringProjectController : WebBaseController
                     BaseResponse<GetMonitoringProjectApiRequestHeaderListResponse>>(request);
         return Ok(response);
     }
+    
+    /// <summary>
+    ///  Modify project api request header
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads/{requestHeaderInfoId:guid}")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> ModifyMonitoringProjectApiRequestHeaderAsync(ModifyMonitoringProjectApiRequestHeaderCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
+    }
 }
