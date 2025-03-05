@@ -59,11 +59,32 @@ public class MonitoringProjectController : WebBaseController
         return Ok(response);
     }
     
+    /// <summary>
+    ///  Modify project api
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPatch("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> ModifyMonitoringProjectApiAsync(ModifyMonitoringProjectApiCommand command)
     {
         await Mediator.SendAsync(command);
         return Ok();
+    }
+    
+    /// <summary>
+    ///  Get project api request header list
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpGet("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/request-heads")]
+    [ProducesResponseType<BaseResponse<GetMonitoringProjectApiRequestHeaderListResponse>>(200)]
+    public async Task<IActionResult> GetMonitoringProjectApiRequestHeaderListAsync(GetMonitoringProjectApiRequestHeaderListRequest request)
+    {
+        var response =
+            await Mediator
+                .RequestAsync<GetMonitoringProjectApiRequestHeaderListRequest,
+                    BaseResponse<GetMonitoringProjectApiRequestHeaderListResponse>>(request);
+        return Ok(response);
     }
 }

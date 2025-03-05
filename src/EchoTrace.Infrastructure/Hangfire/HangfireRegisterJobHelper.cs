@@ -78,10 +78,15 @@ public class HangfireRegisterJobHelper(
             };
             
             await dbContext.Set<MonitoringProjectApiLog>().AddAsync(apiLog);
-            await dbContext.SaveChangesAsync();
         }
         catch (Exception e)
         {
+            var apiLog = new MonitoringProjectApiLog
+            {
+                MonitoringProjectApiId = recurringJobInfo.ApiId,
+                HealthLevel = HealthLevel.Dangerous
+            };
+            await dbContext.Set<MonitoringProjectApiLog>().AddAsync(apiLog);
             Log.Error(e, "执行定时任务失败，Job作业ID：{JobId}， 请求Url：{Url}， 请求方式：{HttpRequestMethod}",
                 recurringJobInfo.JobId, recurringJobInfo.Url, recurringJobInfo.HttpRequestMethod.ToString());
             context.AddTags(recurringJobInfo.MonitoringProjectName + ApiError);
@@ -90,6 +95,7 @@ public class HangfireRegisterJobHelper(
         finally
         {
             memoryCache.Remove(cacheKey);
+            await dbContext.SaveChangesAsync();
         }
     }
 
