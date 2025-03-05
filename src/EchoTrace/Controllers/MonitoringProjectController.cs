@@ -142,4 +142,17 @@ public class MonitoringProjectController : WebBaseController
         await Mediator.SendAsync(command);
         return Ok();
     }
+    
+    /// <summary>
+    ///  Add project api query parameter
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/queryParameters")]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> AddMonitoringProjectApiQueryParameterAsync(AddMonitoringProjectApiQueryParameterCommand command)
+    {
+        await Mediator.SendAsync(command);
+        return Ok();
+    }
 }
