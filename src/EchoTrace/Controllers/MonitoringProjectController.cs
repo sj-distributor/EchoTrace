@@ -156,6 +156,11 @@ public class MonitoringProjectController : WebBaseController
         return Ok();
     }
     
+    /// <summary>
+    ///  Delete project api query parameter
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpDelete("{monitoringProjectId:guid}/monitoringProjectApis/{monitoringProjectApiId:guid}/queryParameters/{queryParameterId}")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> DeleteMonitoringProjectApiQueryParameterAsync(DeleteMonitoringProjectApiQueryParameterCommand command)
