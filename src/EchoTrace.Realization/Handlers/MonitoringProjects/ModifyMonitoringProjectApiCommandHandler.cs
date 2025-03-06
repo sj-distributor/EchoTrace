@@ -64,7 +64,7 @@ public class ModifyMonitoringProjectApiCommandHandler(
                 ExpectationStatusCode = monitoringProjectApi.ExpectationCode,
                 MonitoringProjectApiRequestHeaderInfos = monitoringProjectApiRequestHeaderInfos,
                 MonitoringProjectApiQueryParameterList = monitoringProjectApiQueryParameters
-            }, monitoringProjectApi.CronExpression, cancellationToken); 
+            }, monitoringProjectApi.MonitorInterval.ToCronExpression(), cancellationToken); 
         }
         else
         {
@@ -78,7 +78,7 @@ public class ModifyMonitoringProjectApiCommandHandler(
     {
         validator.RuleFor(x => x.MonitoringProjectId).NotEmpty();
         validator.RuleFor(x => x.MonitoringProjectApiId).NotEmpty();
-        validator.RuleFor(x => x.ModifyMonitoringProjectApi.CronExpression).NotEmpty();
+        validator.RuleFor(x => x.ModifyMonitoringProjectApi.MonitorInterval).NotNull();
     }
 
     public void Test(TestContext<ModifyMonitoringProjectApiCommand> context)
@@ -103,7 +103,7 @@ public class ModifyMonitoringProjectApiCommandHandler(
             MonitoringProjectApiId = api.Id,
             ModifyMonitoringProjectApi = new ModifyMonitoringProjectApiDto
             {
-                CronExpression = "CronExpression",
+                MonitorInterval = MonitorInterval.OneMinute,
                 HttpRequestMethod = HttpRequestMethod.Post,
                 IsDeactivate = false,
                 ExpectationCode = HttpStatusCode.OK,
@@ -128,7 +128,7 @@ public class ModifyMonitoringProjectApiCommandHandler(
 
             var dbApi = await context.DbContext.Set<MonitoringProjectApi>().FirstAsync();
             dbApi.ShouldNotBeNull();
-            dbApi.CronExpression.ShouldBe("CronExpression");
+            dbApi.MonitorInterval.ShouldBe(MonitorInterval.OneMinute);
             dbApi.HttpRequestMethod.ShouldBe(HttpRequestMethod.Post);
             dbApi.ExpectationCode.ShouldBe(HttpStatusCode.OK);
             dbApi.BodyJson.ShouldBe("BodyJson");

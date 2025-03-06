@@ -77,7 +77,7 @@ public class AddMonitoringProjectApiCommandHandler(
                 ExpectationStatusCode = context.Message.ExpectationCode,
                 MonitoringProjectApiRequestHeaderInfos = monitoringProjectApiRequestHeaderInfos,
                 MonitoringProjectApiQueryParameterList = monitoringProjectApiQueryParameterList
-            }, context.Message.CronExpression,
+            }, context.Message.MonitorInterval.ToCronExpression(),
             cancellationToken);
 
         var newMonitoringProjectApi = context.Message.MapToSource(new MonitoringProjectApi());
@@ -102,7 +102,7 @@ public class AddMonitoringProjectApiCommandHandler(
         validator.RuleFor(x => x.ApiUrl).NotEmpty();
         validator.RuleFor(x => x.ApiName).NotEmpty();
         validator.RuleFor(x => x.MonitoringProjectId).NotEmpty();
-        validator.RuleFor(x => x.CronExpression).NotEmpty();
+        validator.RuleFor(x => x.MonitorInterval).NotNull();
     }
 
     public void Test(TestContext<AddMonitoringProjectApiCommand> context)
@@ -119,7 +119,7 @@ public class AddMonitoringProjectApiCommandHandler(
             MonitoringProjectId = project.Id,
             ApiName = "test",
             ApiUrl = "/test",
-            CronExpression = "*/1 * * * * *",
+            MonitorInterval = MonitorInterval.OneMinute,
             HttpRequestMethod = HttpRequestMethod.Post,
             ExpectationCode = HttpStatusCode.OK,
             MonitoringProjectApiAdditionalInfo = new MonitoringProjectApiAdditionalInfo
@@ -159,7 +159,7 @@ public class AddMonitoringProjectApiCommandHandler(
             monitoringProjectApi.ShouldNotBeNull();
             monitoringProjectApi.ApiName.ShouldBe(message.ApiName);
             monitoringProjectApi.ApiUrl.ShouldBe(message.ApiUrl);
-            monitoringProjectApi.CronExpression.ShouldBe(message.CronExpression);
+            monitoringProjectApi.MonitorInterval.ShouldBe(message.MonitorInterval);
             monitoringProjectApi.HttpRequestMethod.ShouldBe(message.HttpRequestMethod);
             monitoringProjectApi.ExpectationCode.ShouldBe(message.ExpectationCode);
             monitoringProjectApi.MonitoringProjectId.ShouldBe(project.Id);
@@ -188,7 +188,7 @@ public class AddMonitoringProjectApiCommandHandler(
             MonitoringProjectId = project.Id,
             ApiName = "test",
             ApiUrl = "/test",
-            CronExpression = "*/1 * * * * *",
+            MonitorInterval = MonitorInterval.OneMinute,
             HttpRequestMethod = HttpRequestMethod.Post,
             ExpectationCode = HttpStatusCode.OK,
             MonitoringProjectApiAdditionalInfo = new MonitoringProjectApiAdditionalInfo()

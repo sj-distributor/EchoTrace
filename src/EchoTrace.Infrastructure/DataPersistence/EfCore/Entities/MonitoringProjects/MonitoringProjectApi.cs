@@ -29,8 +29,9 @@ public class MonitoringProjectApi : IEfEntity<MonitoringProjectApi>, IHasKey<Gui
     public HttpRequestMethod HttpRequestMethod { get; set; }
 
     public bool IsDeactivate { get; set; }
-
-    public string CronExpression { get; set; }
+    
+    public MonitorInterval MonitorInterval { get; set; }
+    
 
     [Description("期望返回的状态码")]
     public HttpStatusCode ExpectationCode { get; set; }

@@ -39,7 +39,7 @@ public class GetMonitoringProjectApiDto :IMapFrom<MonitoringProjectApi>
 
     public bool IsDeactivate { get; set; }
 
-    public string CronExpression { get; set; }
+    public MonitorInterval MonitorInterval { get; set; }
     
     public HttpStatusCode ExpectationCode { get; set; }
 

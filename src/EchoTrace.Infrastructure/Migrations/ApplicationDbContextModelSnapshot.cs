@@ -112,12 +112,6 @@ namespace EchoTrace.Infrastructure.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_on");
 
-                    b.Property<string>("CronExpression")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar")
-                        .HasColumnName("cron_expression");
-
                     b.Property<int>("ExpectationCode")
                         .HasColumnType("int")
                         .HasColumnName("expectation_code");
@@ -129,6 +123,10 @@ namespace EchoTrace.Infrastructure.Migrations
                     b.Property<bool>("IsDeactivate")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_deactivate");
+
+                    b.Property<int>("MonitorInterval")
+                        .HasColumnType("int")
+                        .HasColumnName("monitor_interval");
 
                     b.Property<Guid>("MonitoringProjectId")
                         .HasMaxLength(36)

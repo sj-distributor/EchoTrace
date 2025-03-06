@@ -70,7 +70,7 @@ public static class UseHangfireDashboardExtensions
                     MonitoringProjectApiQueryParameterList = currentProjectJobQueryParameterList
                 };
                 RecurringJob.AddOrUpdate<IHangfireRegisterJobHelper>(jobId,
-                    service => service.RunRecurringJob(recurringJobInfo, null), () => y.CronExpression);
+                    service => service.RunRecurringJob(recurringJobInfo, null), () => y.MonitorInterval.ToCronExpression());
             });
         });
 

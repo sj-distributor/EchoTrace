@@ -1,5 +1,6 @@
 ﻿using EchoTrace.Infrastructure.DataPersistence.EfCore;
 using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects;
+using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects.Enums;
 using EchoTrace.Primary.Bases;
 using EchoTrace.Primary.Contracts.Bases;
 using EchoTrace.Primary.Contracts.MonitoringProjects;
@@ -55,7 +56,7 @@ public class GetMonitoringProjectApiListByMonitoringProjectIdRequestHandler(
             var monitoringProjectApi = new MonitoringProjectApi().Faker(2, x =>
             {
                 x.MonitoringProjectId = monitoringProjectId;
-                x.CronExpression = "CronExpression";
+                x.MonitorInterval = MonitorInterval.OneMinute;
                 x.IsDeactivate = true;
                 x.ApiUrl = "ApiUrl";
                 x.BodyJson = "BodyJson";
@@ -71,7 +72,7 @@ public class GetMonitoringProjectApiListByMonitoringProjectIdRequestHandler(
             dtoList.ForEach(x =>
             {
                 x.Id.ShouldNotBe(Guid.Empty);
-                x.CronExpression.ShouldBe("CronExpression");
+                x.MonitorInterval.ShouldBe(MonitorInterval.OneMinute);
                 x.IsDeactivate.ShouldBeTrue();
                 x.ApiUrl.ShouldBe("ApiUrl");
                 x.BodyJson.ShouldBe("BodyJson");

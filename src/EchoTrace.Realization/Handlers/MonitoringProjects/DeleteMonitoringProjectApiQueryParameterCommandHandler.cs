@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using EchoTrace.Infrastructure.DataPersistence.EfCore;
 using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects;
+using EchoTrace.Infrastructure.DataPersistence.EfCore.Entities.MonitoringProjects.Enums;
 using EchoTrace.Infrastructure.Hangfire;
 using EchoTrace.Primary.Contracts.Bases;
 using EchoTrace.Primary.Contracts.MonitoringProjects;
@@ -63,7 +64,7 @@ public class DeleteMonitoringProjectApiQueryParameterCommandHandler(
                 ExpectationStatusCode = monitoringProjectApi.ExpectationCode,
                 MonitoringProjectApiRequestHeaderInfos = monitoringProjectApiRequestHeaderInfos,
                 MonitoringProjectApiQueryParameterList = monitoringProjectApiQueryParameters
-            }, monitoringProjectApi.CronExpression, cancellationToken); 
+            }, monitoringProjectApi.MonitorInterval.ToCronExpression(), cancellationToken); 
         }
         else
         {

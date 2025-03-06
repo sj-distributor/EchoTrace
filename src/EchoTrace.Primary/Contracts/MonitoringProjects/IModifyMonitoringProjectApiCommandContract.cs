@@ -27,7 +27,10 @@ public class ModifyMonitoringProjectApiCommand : ICommand
 
 public class ModifyMonitoringProjectApiDto : IMapFrom<MonitoringProjectApi>
 {
-    public string CronExpression { get; set; }
+    /// <summary>
+    ///  0：OneMinute， 10：FiveMinutes， 20：TenMinutes， 30：ThirtyMinutes， 40：OneHour， 50：ThreeHours， 60：SixHours， 70：TwelveHours， 80：OneDay
+    /// </summary>
+    public MonitorInterval MonitorInterval { get; set; }
     
     public HttpRequestMethod HttpRequestMethod { get; set; }
     

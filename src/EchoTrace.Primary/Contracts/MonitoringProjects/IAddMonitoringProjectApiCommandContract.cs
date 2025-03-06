@@ -26,9 +26,9 @@ public class AddMonitoringProjectApiCommand : ICommand, IMapFrom<MonitoringProje
     public string ApiUrl { get; set; }
     
     /// <summary>
-    ///   Ps:  0 0 16 ? * *
+    ///   0：OneMinute， 10：FiveMinutes， 20：TenMinutes， 30：ThirtyMinutes， 40：OneHour， 50：ThreeHours， 60：SixHours， 70：TwelveHours， 80：OneDay
     /// </summary>
-    public string CronExpression { get; set; }
+    public MonitorInterval MonitorInterval { get; set; }
     
     /// <summary>
     /// 0.Post 1.Patch 2.Put 3.Delete
