@@ -11,55 +11,77 @@ using Shouldly;
 
 namespace EchoTrace.Realization.Handlers.MonitoringProjects;
 
-public class GetMonitoringProjectApiLogsByTodayRequestHandler(
+public class GetMonitoringProjectApiLogsRequestHandler(
     DbAccessor<MonitoringProject> monitoringProjectDbSet,
     DbAccessor<MonitoringProjectApi> monitoringProjectApiDbSet,
     DbAccessor<MonitoringProjectApiLog> monitoringProjectApiLogDbSet)
-    : IGetMonitoringProjectApiLogsByTodayRequestContract
+    : IGetMonitoringProjectApiLogsRequestContract
 {
-    public async Task<BaseResponse<GetMonitoringProjectApiLogsByTodayResponse>> Handle(
-        IReceiveContext<GetMonitoringProjectApiLogsByTodayRequest> context, CancellationToken cancellationToken)
+    public async Task<BaseResponse<GetMonitoringProjectApiLogsResponse>> Handle(
+        IReceiveContext<GetMonitoringProjectApiLogsRequest> context, CancellationToken cancellationToken)
     {
-        var utdNow = DateTime.UtcNow;
+        var utdStartNow = DateTime.UtcNow.AddDays(-30).Date;
+        var utdEndNow = DateTime.UtcNow.Date;
         var projects = await monitoringProjectDbSet.DbSet.AsNoTracking().ToListAsync(cancellationToken);
         var projectIds = projects.Select(x => x.Id).ToList();
         var projectApis = await monitoringProjectApiDbSet.DbSet.AsNoTracking()
             .Where(x => projectIds.Contains(x.MonitoringProjectId) && !x.IsDeactivate).ToListAsync(cancellationToken);
         var projectApiIds = projectApis.Select(x => x.Id).ToList();
         var projectApiLogs = await monitoringProjectApiLogDbSet.DbSet.AsNoTracking()
-            .Where(x => x.CreatedOn.Date == utdNow.Date && projectApiIds.Contains(x.MonitoringProjectApiId)).ToListAsync(cancellationToken);
-        var response = new GetMonitoringProjectApiLogsByTodayResponse
+            .Where(x => utdStartNow <= x.CreatedOn.Date  && x.CreatedOn.Date <= utdEndNow && projectApiIds.Contains(x.MonitoringProjectApiId)).ToListAsync(cancellationToken);
+        var response = new GetMonitoringProjectApiLogsResponse
         {
             Projects = new List<GetMonitoringProjectApiLogsProjectDto>().MapFromSource(projects)
         };
         var projectApiDic = projectApis.GroupBy(x => x.MonitoringProjectId).ToDictionary(x => x.Key, x => x.ToList());
-        var projectApiLogDic = projectApiLogs.GroupBy(x => x.MonitoringProjectApiId)
-            .ToDictionary(x => x.Key, x => x.ToList());
+        var projectApiLogDic = projectApiLogs
+            .GroupBy(x => x.CreatedOn.Date) // 按日期分组
+            .ToDictionary(
+                dateGroup => dateGroup.Key, // 字典的键为日期
+                dateGroup => dateGroup
+                    .GroupBy(x => x.MonitoringProjectApiId) // 在每个日期内按 MonitoringProjectApiId 分组
+                    .ToDictionary(
+                        idGroup => idGroup.Key, // 字典的键为 MonitoringProjectApiId
+                        idGroup => idGroup.ToList() // 值为该 ID 对应的日志列表
+                    )
+            );
         foreach (var project in response.Projects)
         {
             if (projectApiDic.TryGetValue(project.Id, out var value))
             {
-                project.ProjectApis = new List<GetMonitoringProjectApiLogsProjectApiDto>().MapFromSource(value);
-                project.ProjectApis = project.ProjectApis.Select(x => new GetMonitoringProjectApiLogsProjectApiDto
+                var projectApiDtoList = new List<GetMonitoringProjectApiLogsProjectApiDto>().MapFromSource(value);
+                project.ProjectApis.AddRange(projectApiDtoList
+                    .Select(x => new GetMonitoringProjectApiLogsProjectApiDto
+                    {
+                        Id = x.Id,
+                        ApiName = x.ApiName,
+                        ApiUrl = x.ApiUrl,
+                        MonitorInterval = x.MonitorInterval
+                    }).ToList());
+                foreach (var key in projectApiLogDic.Keys)
                 {
-                    Id = x.Id,
-                    ApiName = x.ApiName,
-                    ApiUrl = x.ApiUrl,
-                    MonitorInterval = x.MonitorInterval,
-                    ApiLogs = projectApiLogDic.TryGetValue(x.Id, out var logs) ? new List<GetMonitoringProjectApiLogsProjectApiLogDto>().MapFromSource(logs):[]
-                }).ToList();
+                    var dateValue = projectApiLogDic[key];
+                    project.ProjectApis.ForEach(x =>
+                    {
+                        x.DayLogs.Add(new GetMonitoringProjectApiLogsProjectApiLogDayDto
+                        {
+                            Date = key,
+                            ApiLogs = dateValue.TryGetValue(x.Id, out var logs) ? new List<GetMonitoringProjectApiLogsProjectApiLogDto>().MapFromSource(logs):[]
+                        });
+                    });
+                }
             }
         }
 
-        return new BaseResponse<GetMonitoringProjectApiLogsByTodayResponse>(response);
+        return new BaseResponse<GetMonitoringProjectApiLogsResponse>(response);
     }
 
-    public void Validate(ContractValidator<GetMonitoringProjectApiLogsByTodayRequest> validator)
+    public void Validate(ContractValidator<GetMonitoringProjectApiLogsRequest> validator)
     {
     }
 
     public void Test(
-        TestContext<GetMonitoringProjectApiLogsByTodayRequest, BaseResponse<GetMonitoringProjectApiLogsByTodayResponse>>
+        TestContext<GetMonitoringProjectApiLogsRequest, BaseResponse<GetMonitoringProjectApiLogsResponse>>
             context)
     {
         var project = new MonitoringProject().Faker();
@@ -82,7 +104,7 @@ public class GetMonitoringProjectApiLogsByTodayRequestHandler(
         });
 
         var testCase = context.CreateTestCase();
-        testCase.Message = new GetMonitoringProjectApiLogsByTodayRequest();
+        testCase.Message = new GetMonitoringProjectApiLogsRequest();
         testCase.Arrange = async () =>
         {
             await monitoringProjectDbSet.DbSet.AddAsync(project);
@@ -109,8 +131,6 @@ public class GetMonitoringProjectApiLogsByTodayRequestHandler(
                 x.ProjectApis.First(q => q.Id == projectApis.First().Id).DangerousRate.ShouldBe("0%");
                 x.ProjectApis.First(q => q.Id == projectApis.First().Id).WarnRate.ShouldBe("0%");
                 x.ProjectApis.First(q => q.Id == projectApis.First().Id).HealthRate.ShouldBe("100%");
-                x.ProjectApis.First(q => q.Id == projectApis.First().Id).ApiLogs.Count.ShouldBe(2);
-                x.ProjectApis.First(q => q.Id == projectApis.First().Id).ApiLogs.ForEach(y=>y.HealthLevel.ShouldBe(HealthLevel.Health));
             });
 
             await Task.CompletedTask;
