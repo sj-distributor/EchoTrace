@@ -168,4 +168,18 @@ public class MonitoringProjectController : WebBaseController
         await Mediator.SendAsync(command);
         return Ok();
     }
+    
+    /// <summary>
+    ///  Retrieve the api log for the past today
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("monitoringProjectApiLogs/today")]
+    [ProducesResponseType<BaseResponse<GetMonitoringProjectApiLogsByTodayResponse>>(200)]
+    public async Task<IActionResult> GetMonitoringProjectApiLogsByTodayAsync()
+    {
+        var response = await Mediator
+            .RequestAsync<GetMonitoringProjectApiLogsByTodayRequest, BaseResponse<GetMonitoringProjectApiLogsByTodayResponse>>(
+                new GetMonitoringProjectApiLogsByTodayRequest());
+        return Ok(response);
+    }
 }
