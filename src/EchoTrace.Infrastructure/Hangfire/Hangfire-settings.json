@@ -1,0 +1,13 @@
+{
+  "HangfireSettings":{
+    "EnableHangfireDashboard":"true",
+    "RedisConnectionString": "localhost:8888,connectTimeout=1000,connectRetry=1,syncTimeout=1200000",
+    "RedisDb": 6,
+    "SucceededJobExpireTime": 3,
+    "FailedJobExpireTime": 3,
+    "JobMemoryCacheTimeout":5,
+    "UserName":"",
+    "Password":"",
+    "RobotUrl":""
+  }
+}

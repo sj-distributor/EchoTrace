@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using EchoTrace.Engines.Bases;
 using EchoTrace.Infrastructure.CorsFunction;
+using EchoTrace.Infrastructure.Hangfire;
 using EchoTrace.Infrastructure.JwtFunction;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -33,6 +34,8 @@ public class ConfigureConvention : IBuilderEngine
         services.AddEndpointsApiExplorer();
         services.AddCorsFunction();
         services.AddJwtFunction();
+        services.AddMemoryCache();
+        services.AddHangfire();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddSwaggerGen(options => { options.DescribeAllParametersInCamelCase(); });
     }
@@ -54,6 +57,7 @@ public class UseConvention : IAppEngine
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseHangfireDashboard();
         ValidatorOptions.Global.LanguageManager.Enabled = true;
         ValidatorOptions.Global.LanguageManager.Culture = new CultureInfo("zh-CN");
     }

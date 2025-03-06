@@ -36,6 +36,18 @@ public static class JwtFunctionExtensions
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                var setting = services.BuildServiceProvider().GetRequiredService<JwtSetting>();
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = setting.Issuer,
+                    ValidAudience = setting.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(setting.SignKey)),
+                    ClockSkew = TimeSpan.FromMinutes(1)
+                };
             });
         return services;
     }

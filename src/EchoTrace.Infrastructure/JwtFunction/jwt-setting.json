@@ -1,8 +1,8 @@
 {
   "JwtSetting": {
-    "Issuer": "Issuer",
-    "SignKey": "SignKey",
-    "Audience": "Audience",
+    "Issuer": "https://localhost:7240/",
+    "SignKey": "ThisIsAVeryLongAndLengthSecretForDEVUseOnly",
+    "Audience": "https://localhost:7240/",
     "LongExpiresInMinutes": 43200,
     "ShortExpiresInMinutes": 1440
   }

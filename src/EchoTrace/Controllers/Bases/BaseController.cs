@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EchoTrace.Controllers.Bases;
 
 [ApiController]
-// [Authorize]
+[Authorize]
 [ServiceFilter<AutoResolveFilter>]
 [TypeFilter(typeof(HandleTimezoneResultFilter))]
 public class BaseController : ControllerBase, IHasMediator
