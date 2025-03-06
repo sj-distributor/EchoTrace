@@ -17,6 +17,7 @@ public static class AddHangfireExtensions
         services.AddScoped<IPasswordHasher, PasswordHash>();
         services.AddScoped<IHangfireRegisterJobHelper, HangfireRegisterJobHelper>();
         services.AddScoped<IRobotSendLogService, RobotSendLogService>();
+        services.AddScoped<ISweepOutExpiredLogs, SweepOutExpiredLogs>();
 
         var redisOptions = new RedisStorageOptions
         {

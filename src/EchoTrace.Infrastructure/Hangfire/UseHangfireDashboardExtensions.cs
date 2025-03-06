@@ -71,6 +71,8 @@ public static class UseHangfireDashboardExtensions
                 };
                 RecurringJob.AddOrUpdate<IHangfireRegisterJobHelper>(jobId,
                     service => service.RunRecurringJob(recurringJobInfo, null), () => y.MonitorInterval.ToCronExpression());
+                RecurringJob.AddOrUpdate<ISweepOutExpiredLogs>(nameof(ISweepOutExpiredLogs), sweepOutExpiredLogs=>sweepOutExpiredLogs.SweepOutExpiredLogsAsync(),()=>
+                    MonitorInterval.OneDay.ToCronExpression());
             });
         });
 
